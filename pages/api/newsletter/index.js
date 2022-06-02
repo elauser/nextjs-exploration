@@ -1,24 +1,39 @@
-import { MongoClient, ServerApiVersion } from 'mongodb';
-import { mongodb_uri } from '../../../helpers/secrets';
+import { connectDatabase, insertDocument, getAllDocuments } from '../../../helpers/db-utils';
 
-const uri = mongodb_uri
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 export default async function handler(req, res) {
+  let client
+  try {
+    client = await connectDatabase()
+  } catch (error) {
+    res.status(500).json({message: 'Connecting to the database failed!'})
+    return
+  }
 
   if(req.method === "PUT"){
-    await client.connect();
 
-    const db = client.db("newsletter")
+    const document = {email: req.body.email}
+    
+    try {
+      await insertDocument(client, "newsletter", 'emails', document)
+      await client.close()
+    } catch (error) {
+      res.status(500).json({message: 'Inserting Document failed!'})
+      return
+    }
 
-    await db.collection('emails').insertOne({email: req.body.email})
-
-    client.close()
-    res.status(200).json({message: "Signed up!"})
+    res.status(200).json({message: "Added Comment!"})
 
   } else if (req.method === "GET") {
-    const emails = await getAllEmails()
-    res.status(200).json(emails)
+    
+    try {
+      const documents = await getAllDocuments(client, "newsletter", "emails", {_id: -1})
+      client.close()
+      res.status(200).json(documents)
+    } catch (error) {
+      res.status(500).json({message: 'Error getting Emails!'})
+      return
+    }
   }
 
 }
