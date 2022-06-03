@@ -1,12 +1,17 @@
-import { useRef } from 'react';
+import { useRef, useContext } from 'react';
 import classes from './newsletter-registration.module.css';
-
 
 function NewsletterRegistration() {
   let email = useRef()
+  const notificationCtx = useContext(NotificationContext)
 
   function registrationHandler(event) {
     event.preventDefault();
+    notificationCtx.showNotification({
+      title: 'Signing up',
+      message: 'Registering for Newsletter',
+      status: 'pending'
+    })
 
     if (validateEmail(email.current.value)) {
       fetch(`/api/newsletter`, {
@@ -17,12 +22,31 @@ function NewsletterRegistration() {
         headers: {
           'Content-Type': "application/json"
         }
-      }).then(response => response.json())
+      }).then(response => {
+        if (response.ok) {
+          return response.json()
+        } else {
+          response.json().then(data => {
+            throw new Error(data.message || 'Something went wrong')
+          })
+        }
+      })
         .then((data) => {
+          notificationCtx.showNotification({
+            title: 'Success',
+            message: 'Registered for Newsletter',
+            status: 'success'
+          })
           console.log(data)
         })
+        .catch(error => {
+          notificationCtx.showNotification({
+            title: 'Error',
+            message: error.message || 'Something went wrong',
+            status: 'error'
+          })
+        })
     }
-
   }
 
   const validateEmail = (email) => {

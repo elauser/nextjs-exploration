@@ -1,5 +1,6 @@
 import classes from './comment-list.module.css';
 
+
 function CommentList({comments}) {
   const comment_component = comments.map(comment => {
     return (
