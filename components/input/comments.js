@@ -77,8 +77,8 @@ function Comments(props) {
         {showComments ? 'Hide' : 'Show'} Comments
       </button>
       {showComments && <NewComment onAddComment={addCommentHandler} />}
-      {(showComments && loadingComments) && <b>Loading Comments ... </b>}
-      {showComments && <CommentList comments={comments}/>}
+      {showComments && loadingComments && <b>Loading Comments ... </b>}
+      {showComments && !loadingComments && <CommentList comments={comments}/>}
     </section>
   );
 }
